@@ -10,35 +10,6 @@ import hashlib
 
 #Our target subreddit and appropriate limit
 
-#Login Stuff
-#Here we do modular filtering
-def clippunct(wordList):
-	#print( "Before Processing", wordList)
-	for index in range(0, len(wordList)):
-		wordList[index] = re.sub(exceptionString, '', wordList[index])
-	return wordList
-
-def pullwords(commentText):
-	#split list on space
-	wordList = commentText.split(" ")
-	#Clip punctuation and other artifacts:
-	wordList = clippunct(wordList)
-	#Dump first X words:
-	wordList = wordList[beginCutLimit:]
-	return wordList
-
-
-def pullnouns(extractList):
-	#In this simple case, we just get acronyms by finding capitals
-	retList = []
-	pattern = re.compile("[A-Z]{3,7}")
-	for word in extractList:
-		hold = re.findall(pattern, word)
-		#if (len(hold) != 0):
-		for anItem in hold:
-			if len(anItem) <= 5:
-				retList.append(anItem)
-	return retList
 
 #Next, lets try to get comment forests for one submission, and get a flattened list of them.
 #The output is piped to a shell script file container (instead of being handled in python).
@@ -114,15 +85,42 @@ def commentfilter(dataDict,sub):
 			print(comm.body)
 	return
 
+#Login Stuff
+#Here we do modular filtering
+
+
+def clippunct(wordList):
+	exceptionString = ' \.,;\[\]\(\)'
+	for index in range(0, len(wordList)): #apply some functional programming?
+		wordList[index] = re.sub(exceptionString, '', wordList[index])
+	return wordList
+
+def pullacronyms(commentBody):
+	#In this simple case, we just get acronyms by finding capitals
+	wordList = commentBody.split(" ");
+	wordList = clippunct(wordList)
+	retList = []
+	pattern = re.compile("[A-Z]{3,7}")
+	for word in extractList:
+		hold = re.findall(pattern, word)
+		#if (len(hold) != 0):
+		for anItem in hold:
+			if len(anItem) <= 5:
+				retList.append(anItem)
+	return retList
+
+def filtercomment(submission):
+
 #signature: Dictionary -> NoneType
 #Purpose:
-def minecomments(dataDict,submission):
+def minesubmission(dataDict,submission):
 	commentLim = 5 #500
 	rmThresh = 1 #32
 	submission.comments.replace_more(limit=commentLim, threshold=rmThresh)
-	commentfilter(dataDict,submission)
+	for comment in submission.comments.list():
+		retList = filtersubmission(submission)
+	print(retList)
 	return
-	      #extract all acronyms, and put in our data table.
 
 
 #Signature: Void -> Void.
@@ -141,7 +139,7 @@ def main(credFile):
 	for item in subredditList:
 		for submission in theSession.subreddit(item).hot(limit=fetchLimit):
 			print(submission.title)
-			minecomments(dataDict,submission)
+			minecsubmission(dataDict,submission)
 		print("Just finished subreddit:" + item)
 
 if __name__ == "__main__":
