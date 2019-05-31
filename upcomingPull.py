@@ -10,48 +10,6 @@ import hashlib
 
 #Our target subreddit and appropriate limit
 
-
-#Next, lets try to get comment forests for one submission, and get a flattened list of them.
-#The output is piped to a shell script file container (instead of being handled in python).
-def startredditsession():
-	#As I am posting this code in GitHub, I need to store the credentials outside the Git Folder. Its not included
-	#in the project at all.
-	credList = []
-	credFP =  open(credRedditFile, "r")
-	for line in credFP:
-		hold = line.split("::")
-		credList.append(hold[1])
-	r = praw.Reddit(client_id=credList[0],
-	client_secret=credList[1], username=credList[2],  \
-	password=credList[3], user_agent=credList[4])
-	print(r.user.me())
-	return r
-
-def addtodict(extractList):
-	for noun in extractList:
-		if noun in pNounStats:
-			pNounStats[noun] = pNounStats[noun] + 1
-		else:
-			pNounStats[noun] = 1
-
-def grabsubmissions(sR):
-	for aSub in sR.new(limit=fetchLimit):
-		aSub.comments.replace_more(limit=comRepLimit)
-		for comment in ((aSub.comments.list())): #[1] We don't care about CommentTrees structure; just pull nouns.
-			extractList = pullwords(comment.body)
-			extractList = pullnouns(extractList)
-			addtodict(extractList)
-	return
-
-#The sorting and statistics are done in R; this just pumped to a file via commandline.
-
-def printtofile(name,orderedTuples):
-	fo = open(writeDirectory + name + ".txt", "w+")
-	for tup in orderedTuples:
-		fo.write(str(tup[1]) + ":" + str(tup[2]) + "\n")
-	fo.close()
-	return
-
 def printtuples(orderedTuples):
 	for tup in orderedTuples:
 		print( str(tup[1]) + ":" + str(tup[2]) + ":" + str(tup[3]) + ":" )
@@ -125,13 +83,25 @@ def minesubredditcomments(dataDict,subRName,listGen):
 					addrows(dataDict, acroSet, comm, subRName)
 	return
 
+def writetofile(dataDict,path):
+	outFP = open(path, "w")
+	for entry in list(dataDict.keys()):
+		row = str(entry)
+		for elem in dataDict[entry]:
+			row += ","
+			row += str(elem)
+		row += "\n"
+		outFP.write(row)
+	outFP.close()
+	return
+
 
 #Signature: Void -> Void.
 #Purpose: Our main method that acts as the scope for all functions.
 #Implemented this way to avoid heavy usage of global variables.
 def main(credFile):
 	subredditList = ["MachineLearning"]
-	writeDirectory = "./data/"
+	writePath = "./data/datatable.csv"
 	dataDict = {} #hexID -> subreddit,user,term,timestamp
 	fetchLimit = 5
 
@@ -142,6 +112,7 @@ def main(credFile):
 		minesubredditcomments(dataDict,item, listGen)
 		print("Just finished subreddit:" + item)
 	print(dataDict)
+	writetofile(dataDict,writePath)
 	return
 
 if __name__ == "__main__":
