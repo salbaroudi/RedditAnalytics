@@ -79,20 +79,13 @@ def startredditsession(credFile,readOnly):
 	credFP.close()
 	return r
 
-def commentfilter(dataDict,sub):
-
-
-#Login Stuff
-#Here we do modular filtering
-
-
 def clippunct(wordList):
 	exceptionString = ' \.,;\[\]\(\)'
 	for index in range(0, len(wordList)): #apply some functional programming?
 		wordList[index] = re.sub(exceptionString, '', wordList[index])
 	return wordList
 
-def applyfilter(wordList):
+def commentfilter(wordList):
 	retList = []
 	pattern = re.compile("[A-Z]{3,7}")
 	for word in wordList:
@@ -102,24 +95,34 @@ def applyfilter(wordList):
 				retList.append(anItem)
 	return retList
 
-def pullacronyms(commmentBody):
+def pullacronyms(commentBody):
 	#In this simple case, we just get acronyms by finding capitals
-	wordList = commentBody.split(" ");
+	wordList = commentBody.split(" ")
 	clippunct(wordList)
-	retList = applyfilter(wordList)
-	return retList
+	retSet = set(commentfilter(wordList)) #auto clips duplicates by def.
+	return retSet
+
+def addrows(dataDict, acroSet, comment, subRedName):
+	user = comment.author.name
+	time = comment.created_utc
+	id = comment.id
+	for term in acroSet:
+		dataDict[id] = [time,user,subRedName,term]
+	return
 
 #signature: Dictionary -> Dictionary
 #Purpose:
-def minesubredditcomments(dataDict,submission,subRedName):
-	commentLim = 50 #500
-	rmThresh = 2 #32
-	fetchLimit = 10
-	for submission in theSession.subreddit(item).hot(limit=fetchLimit):
+def minesubredditcomments(dataDict,subRName,listGen):
+	commentLim = 10 #500
+	rmThresh = 1 #32
+
+	for submission in listGen:
 		submission.comments.replace_more(limit=commentLim, threshold=rmThresh)
 		for comm in submission.comments.list():
 			if ((comm.body is not None) and (comm.author is not None)):
-				acroList = pullacronyms(comm)
+				acroSet = pullacronyms(comm.body)
+				if len(acroSet) > 0:
+					addrows(dataDict, acroSet, comm, subRName)
 	return
 
 
@@ -130,13 +133,13 @@ def main(credFile):
 	subredditList = ["MachineLearning"]
 	writeDirectory = "./data/"
 	dataDict = {} #hexID -> subreddit,user,term,timestamp
+	fetchLimit = 5
 
 	theSession = startredditsession(credFile,True)
-	#theSession.read_only = True #To avoid throttling.
-		#Get a SubReddit Object from our list.
 
 	for item in subredditList:
-		dataDict = minesubredditcomments(dataDict,submission)
+		listGen = theSession.subreddit(item).hot(limit=fetchLimit)
+		minesubredditcomments(dataDict,item, listGen)
 		print("Just finished subreddit:" + item)
 	print(dataDict)
 	return
