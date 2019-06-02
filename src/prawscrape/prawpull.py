@@ -3,9 +3,10 @@ import re
 
 #Data Scrape Global Parameters:
 #defaults
-fetchSubLimit = 1000
-commentLim = 1000 #500
-repMoreLim = 32 #32
+fetchSubLimit = 50
+commentLim = 50 #500
+repMoreLim = 2 #32
+tableName = "datatable.csv"
 
 #Signature: List -> Object[Reddit Session]
 #Purpose: Do OAUTH2 and gain access to remote Reddit API.
@@ -120,7 +121,7 @@ def main(credFile):
 	subRedditList = readsrfile(srFilePath)
 	#print(subRedditList)
 
-	writePath = rootPath+"/data/datatable.csv"
+	writePath = rootPath+"/data/"+tableName
 	dataDict = {} #hexID -> subreddit,user,term,timestamp
 	#fetchSubLimit = 1000
 
