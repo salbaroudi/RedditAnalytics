@@ -1,0 +1,39 @@
+### Introduction:
+
+140k+ acronyms were mined from science, tech, bio and future leaning subreddits. This was done with PRAW and compiled into a .csv file.  This data set was originally mined to be a learning tool, used to illustrate pandas groupings, visualizations and count based time series. If the data set is refined enough, it might be possible to use it for prediction.
+
+### Data Acquisition (Codebook):
+
+PRAW (a python3 library) was used to mine the data from a list of subreddits that were hand selected. Science and Tech themed subreddits were focused on, as they tend to have higher quality content. To expand the list, [a subreddit graph explorer][graphexplore] was used to get a better view of the Sci/Tech subreddit network. Subreddits were excluded according to the following criteria: 
+
+(1) Too few submissions and/or users. 
+
+(2) Too esoteric, niche, or a subset of a much larger subreddit (example: pennystocks is a subset of stocks, in terms of content scope). 
+
+(3) Satirical, politicized, or highly valenced in content (example: pcmasterrace). 
+
+Some of these points are dependent on human interpretation - which may introduce bias into the data. See *subreddit.txt* file for a list of those selected. For each subreddit: upto 1000 submissions had there comment trees fully populated, and each comment was scanned for acronyms that were 3 to 7 letters in length. Associated information was then compiled, and written to a csv file. The format of the data table is below:
+
+
+**commID:** Reddit Comment ID *(base 36 integer) (primary key)*
+
+**time:** unix system time stamp for comment, that acronym is mentioned in. *(float)*
+
+**user:** username for person making comment. *(string)*
+
+**subreddit:** name of subreddit acronym appears in. *(string)*
+
+**acronym:** The term itself. *(string)*
+
+###Data Statistics and Facts:
+
+See the [kernel][kernanalysis] for more details.
+
+###References: 
+To reference this data set, use the following information:
+
+```
+al-Baroudi, S. (2019, June). Reddit Sci/Tech Acronyms Dataset, Version 1. Retrieved <date> from https://www.kaggle.com/salbaroudi/reddit-scitech-acronyms 
+```
+[graphexplore]:https://anvaka.github.io/sayit/?query=
+[kernanalysis]: https://www.kaggle.com/salbaroudi/dataset-cleaning-usage-basic-analysis
